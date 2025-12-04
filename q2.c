@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 #define MAX_ACC 100
 #define MAX_TRANS 100
@@ -8,7 +7,7 @@
 struct Transaction {
     char type[20];         // Deposit / Withdrawal
     float amount;
-    char date[20];         // Transaction date
+    char date[20];         // Transaction date (entered by user)
 };
 
 struct Account {
@@ -25,13 +24,16 @@ struct Account {
     int transCount;
 };
 
-void getCurrentDate(char *buffer);
+/* Function declarations */
 void createAccount(struct Account a[], int *n);
 void showAccount(struct Account a[], int n);
 void deposit(struct Account a[], int n);
 void withdraw(struct Account a[], int n);
 void showHistory(struct Account a[], int n);
+int findAccount(struct Account a[], int n, int acc);
+void readDate(char *buffer);
 
+/* Main program */
 int main() {
     struct Account a[MAX_ACC];
     int n = 0, choice;
@@ -46,6 +48,7 @@ int main() {
         printf("0. Exit\n");
         printf("Enter choice: ");
         scanf("%d", &choice);
+        getchar(); // consume newline
 
         switch(choice) {
             case 1: createAccount(a, &n); break;
@@ -62,15 +65,17 @@ int main() {
     return 0;
 }
 
-void getCurrentDate(char *buffer) {
-    time_t t = time(NULL);
-    struct tm *tm_info = localtime(&t);
-    strftime(buffer, 20, "%d-%m-%Y", tm_info);
+/* Read date from user in DD-MM-YYYY format */
+void readDate(char *buffer) {
+    printf("Enter Date (DD-MM-YYYY): ");
+    scanf(" %[^\n]", buffer);
 }
 
+/* Create new account */
 void createAccount(struct Account a[], int *n) {
     printf("\nEnter Account Number: ");
     scanf("%d", &a[*n].accNumber);
+    getchar(); // consume newline
 
     printf("Enter Name: ");
     scanf(" %[^\n]", a[*n].name);
@@ -80,36 +85,36 @@ void createAccount(struct Account a[], int *n) {
     printf("1. Savings\n2. Current\n3. Fixed Deposit\n");
     printf("Enter: ");
     scanf("%d", &t);
+    getchar();
 
     if(t == 1) {
         strcpy(a[*n].type, "Savings");
         a[*n].minBalance = 1000;
         a[*n].interestRate = 4.0;
-    } 
-    else if(t == 2) {
+    } else if(t == 2) {
         strcpy(a[*n].type, "Current");
         a[*n].minBalance = 5000;
         a[*n].interestRate = 0.0;
-    } 
-    else if(t == 3) {
+    } else if(t == 3) {
         strcpy(a[*n].type, "Fixed Deposit");
         a[*n].minBalance = 10000;
         a[*n].interestRate = 7.0;
-    }
-    else {
+    } else {
         printf("Invalid type! Account not created.\n");
         return;
     }
 
     printf("Enter Initial Deposit: ");
     scanf("%f", &a[*n].balance);
+    getchar();
 
     if(a[*n].balance < a[*n].minBalance) {
         printf("Initial deposit must be at least %.2f!\n", a[*n].minBalance);
         return;
     }
 
-    getCurrentDate(a[*n].creationDate);
+    printf("Enter Account Creation Date (DD-MM-YYYY): ");
+    readDate(a[*n].creationDate);
     strcpy(a[*n].lastTransactionDate, a[*n].creationDate);
 
     a[*n].transCount = 0;
@@ -118,6 +123,7 @@ void createAccount(struct Account a[], int *n) {
     (*n)++;
 }
 
+/* Show all accounts */
 void showAccount(struct Account a[], int n) {
     if(n == 0) {
         printf("No accounts found!\n");
@@ -137,6 +143,7 @@ void showAccount(struct Account a[], int n) {
     }
 }
 
+/* Find account index by account number */
 int findAccount(struct Account a[], int n, int acc) {
     for(int i = 0; i < n; i++)
         if(a[i].accNumber == acc)
@@ -144,12 +151,14 @@ int findAccount(struct Account a[], int n, int acc) {
     return -1;
 }
 
+/* Deposit money */
 void deposit(struct Account a[], int n) {
     int acc;
     float amount;
 
     printf("\nEnter Account Number: ");
     scanf("%d", &acc);
+    getchar();
 
     int index = findAccount(a, n, acc);
     if(index == -1) {
@@ -159,13 +168,13 @@ void deposit(struct Account a[], int n) {
 
     printf("Enter Amount to Deposit: ");
     scanf("%f", &amount);
+    getchar();
 
     a[index].balance += amount;
 
-    // Add to history
     strcpy(a[index].history[a[index].transCount].type, "Deposit");
     a[index].history[a[index].transCount].amount = amount;
-    getCurrentDate(a[index].history[a[index].transCount].date);
+    readDate(a[index].history[a[index].transCount].date);
 
     strcpy(a[index].lastTransactionDate, a[index].history[a[index].transCount].date);
 
@@ -174,12 +183,14 @@ void deposit(struct Account a[], int n) {
     printf("Deposit Successful!\n");
 }
 
+/* Withdraw money */
 void withdraw(struct Account a[], int n) {
     int acc;
     float amount;
 
     printf("\nEnter Account Number: ");
     scanf("%d", &acc);
+    getchar();
 
     int index = findAccount(a, n, acc);
     if(index == -1) {
@@ -189,6 +200,7 @@ void withdraw(struct Account a[], int n) {
 
     printf("Enter Amount to Withdraw: ");
     scanf("%f", &amount);
+    getchar();
 
     if(a[index].balance - amount < a[index].minBalance) {
         printf("Cannot withdraw! Balance cannot go below minimum %.2f\n",
@@ -198,10 +210,9 @@ void withdraw(struct Account a[], int n) {
 
     a[index].balance -= amount;
 
-    // Add to history
     strcpy(a[index].history[a[index].transCount].type, "Withdrawal");
     a[index].history[a[index].transCount].amount = amount;
-    getCurrentDate(a[index].history[a[index].transCount].date);
+    readDate(a[index].history[a[index].transCount].date);
 
     strcpy(a[index].lastTransactionDate, a[index].history[a[index].transCount].date);
 
@@ -210,11 +221,13 @@ void withdraw(struct Account a[], int n) {
     printf("Withdrawal Successful!\n");
 }
 
+/* Show transaction history */
 void showHistory(struct Account a[], int n) {
     int acc;
 
     printf("\nEnter Account Number: ");
     scanf("%d", &acc);
+    getchar();
 
     int index = findAccount(a, n, acc);
     if(index == -1) {
@@ -224,13 +237,15 @@ void showHistory(struct Account a[], int n) {
 
     printf("\n=== Transaction History for %s ===\n", a[index].name);
 
+    if(a[index].transCount == 0) {
+        printf("No transactions yet.\n");
+        return;
+    }
+
     for(int i = 0; i < a[index].transCount; i++) {
         printf("%s of %.2f on %s\n",
                a[index].history[i].type,
                a[index].history[i].amount,
                a[index].history[i].date);
     }
-
-    if(a[index].transCount == 0)
-        printf("No transactions yet.\n");
 }
