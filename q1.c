@@ -81,15 +81,15 @@ void inputStudents(struct Student s[], int *n) {
 }
 
 void calculate(struct Student *s) {
-    float total = s->marks[0] + s->marks[1] + s->marks[2];
-    s->percentage = total / 3;
+    float total = (*s).marks[0] + (*s).marks[1] + (*s).marks[2];
+    (*s).percentage = total / 3;
 
-    if(s->percentage >= 90) strcpy(s->grade, "A+");
-    else if(s->percentage >= 80) strcpy(s->grade, "A");
-    else if(s->percentage >= 70) strcpy(s->grade, "B+");
-    else if(s->percentage >= 60) strcpy(s->grade, "B");
-    else if(s->percentage >= 50) strcpy(s->grade, "C");
-    else strcpy(s->grade, "F");
+    if((*s).percentage >= 90) strcpy((*s).grade, "A+");
+    else if((*s).percentage >= 80) strcpy((*s).grade, "A");
+    else if((*s).percentage >= 70) strcpy((*s).grade, "B+");
+    else if((*s).percentage >= 60) strcpy((*s).grade, "B");
+    else if((*s).percentage >= 50) strcpy((*s).grade, "C");
+    else strcpy((*s).grade, "F");
 }
 
 void showAll(struct Student s[], int n) {
